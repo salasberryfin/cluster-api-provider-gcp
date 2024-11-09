@@ -305,7 +305,7 @@ func (s *ManagedMachinePoolScope) Region() string {
 
 // NodePoolLocation returns the location of the node pool.
 func (s *ManagedMachinePoolScope) NodePoolLocation() string {
-	return fmt.Sprintf("projects/%s/locations/%s/clusters/%s", s.GCPManagedControlPlane.Spec.Project, s.Region(), s.GCPManagedControlPlane.Spec.ClusterName)
+	return fmt.Sprintf("projects/%s/locations/%s/clusters/%s", s.GCPManagedControlPlane.Spec.Project, s.GCPManagedControlPlane.Spec.Location, s.GCPManagedControlPlane.Spec.ClusterName)
 }
 
 // NodePoolFullName returns the full name of the node pool.
