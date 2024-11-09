@@ -288,11 +288,11 @@ func (s *Service) getInstances(ctx context.Context, nodePool *containerpb.NodePo
 
 func (s *Service) createNodePool(ctx context.Context, log *logr.Logger) error {
 	log.V(2).Info("Running pre-flight checks on machine pool before creation")
-	if err := shared.ManagedMachinePoolPreflightCheck(s.scope.GCPManagedMachinePool, s.scope.MachinePool, s.scope.Region()); err != nil {
+	if err := shared.ManagedMachinePoolPreflightCheck(s.scope.GCPManagedMachinePool, s.scope.MachinePool, s.scope.GCPManagedControlPlane.Spec.Location); err != nil {
 		return fmt.Errorf("preflight checks on machine pool before creating: %w", err)
 	}
 
-	isRegional := shared.IsRegional(s.scope.Region())
+	isRegional := shared.IsRegional(s.scope.GCPManagedControlPlane.Spec.Location)
 
 	createNodePoolRequest := &containerpb.CreateNodePoolRequest{
 		NodePool: scope.ConvertToSdkNodePool(*s.scope.GCPManagedMachinePool, *s.scope.MachinePool, isRegional, s.scope.GCPManagedControlPlane.Spec.ClusterName),

@@ -246,7 +246,7 @@ func (s *Service) createCluster(ctx context.Context, log *logr.Logger) error {
 	nodePools, machinePools, _ := s.scope.GetAllNodePools(ctx)
 
 	log.V(2).Info("Running pre-flight checks on machine pools before cluster creation")
-	if err := shared.ManagedMachinePoolsPreflightCheck(nodePools, machinePools, s.scope.Region()); err != nil {
+	if err := shared.ManagedMachinePoolsPreflightCheck(nodePools, machinePools, s.scope.GCPManagedControlPlane.Spec.Location); err != nil {
 		return fmt.Errorf("preflight checks on machine pools before cluster create: %w", err)
 	}
 
