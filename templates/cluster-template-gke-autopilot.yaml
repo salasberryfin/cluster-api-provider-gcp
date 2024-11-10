@@ -34,3 +34,4 @@ spec:
   project: "${GCP_PROJECT}"
   location: "${GCP_REGION}"
   enableAutopilot: true
+  releaseChannel: "regular"
