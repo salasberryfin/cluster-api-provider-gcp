@@ -215,6 +215,31 @@ const (
 	Stable ReleaseChannel = "stable"
 )
 
+// ControlPlaneEndpointsConfig is the configuration for all of the cluster's control plane endpoints.
+type ControlPlaneEndpointsConfig struct {
+	// IpEndpointsConfig is the configuration for the cluster's endpoints IP.
+	// This feature is disabled if this field is not specified.
+	// +optional
+	IpEndpointsConfig *IpEndpointsConfig `json:"ipEndpointsConfig,omitempty"`
+}
+
+// IpEndpointsConfig is the configuration for the cluster's endpoints IP.
+type IpEndpointsConfig struct {
+	// Controls whether the control plane allows access through a public IP.
+	// +optional
+	EnablePublicEndpoint *bool `json:"enablePublicEndpoint,omitempty"`
+	// AuthorizedNetworksConfig represented the configuration of authorized networks. If enabled, restricts access to the
+	// control plane based on source IP.
+	// It is invalid to specify both
+	// [Cluster.masterAuthorizedNetworksConfig][] and this field at the same
+	// time.
+	// +optional
+	AuthorizedNetworksConfig *MasterAuthorizedNetworksConfig `json:"authorizedNetworksConfig,omitempty"`
+	// Subnet to provision the master's private endpoint during cluster
+	// creation. Specified in projects/*/regions/*/subnetworks/* format.
+	PrivateEndpointSubnetwork string `json:"privateEndpointSubnetwork,omitempty"`
+}
+
 // MasterAuthorizedNetworksConfig contains configuration options for the master authorized networks feature.
 // Enabled master authorized networks will disallow all external traffic to access
 // Kubernetes master through HTTPS except traffic from the given CIDR blocks,

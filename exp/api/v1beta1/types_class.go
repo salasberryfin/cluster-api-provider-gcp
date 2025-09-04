@@ -52,8 +52,16 @@ type GCPManagedControlPlaneClassSpec struct {
 
 	// MasterAuthorizedNetworksConfig represents configuration options for master authorized networks feature of the GKE cluster.
 	// This feature is disabled if this field is not specified.
+	//
+	// Deprecated: This field will soon be removed as it will be deprecated in the GCP SDK.
+	// Use controlPlaneEndpointsConfig.ipEndpointsConfig.authorizedNetworksConfig instead.
+	//
 	// +optional
 	MasterAuthorizedNetworksConfig *MasterAuthorizedNetworksConfig `json:"master_authorized_networks_config,omitempty"`
+
+	// ControlPlaneEndpointsConfig represents configuration options for all of the cluster's control plane endpoints.
+	// +optional
+	ControlPlaneEndpointsConfig *ControlPlaneEndpointsConfig `json:"controlPlaneEndpointsConfig,omitempty"`
 
 	// LoggingService represents configuration of logging service feature of the GKE cluster.
 	// Possible values: none, logging.googleapis.com/kubernetes (default).

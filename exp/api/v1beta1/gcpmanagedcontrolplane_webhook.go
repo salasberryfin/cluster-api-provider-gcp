@@ -125,6 +125,17 @@ func (*gcpManagedControlPlaneWebhook) ValidateCreate(_ context.Context, obj runt
 		}
 	}
 
+	if r.Spec.MasterAuthorizedNetworksConfig != nil {
+		if r.Spec.ControlPlaneEndpointsConfig.IpEndpointsConfig.AuthorizedNetworksConfig != nil {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec", "MasterAuthorizedNetworksConfig"),
+				r.Spec.MasterAuthorizedNetworksConfig,
+				"spec.MasterAuthorizedNetworksConfig and spec.ControlPlaneEndpointsConfig.IpEndpointsConfig.AuthorizedNetworksConfig cannot be set at the same time"))
+		} else {
+			allWarns = append(allWarns,
+				"spec.MasterAuthorizedNetworksConfig is deprecated and will soon be removed: please use spec.ControlPlaneEndpointsConfig.IpEndpointsConfig.AuthorizedNetworksConfig")
+		}
+	}
+
 	if len(allErrs) == 0 {
 		return allWarns, nil
 	}
@@ -184,6 +195,11 @@ func (*gcpManagedControlPlaneWebhook) ValidateUpdate(_ context.Context, oldObj, 
 	if old.Spec.Version != nil && r.Spec.ControlPlaneVersion != nil {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec", "ControlPlaneVersion"),
 			r.Spec.LoggingService, "spec.ControlPlaneVersion and spec.Version cannot be set at the same time: please use spec.Version"))
+	}
+
+	if old.Spec.MasterAuthorizedNetworksConfig != nil && r.Spec.ControlPlaneEndpointsConfig.IpEndpointsConfig.AuthorizedNetworksConfig != nil {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec", "ControlPlnaeEndpointsConfig.IpEndpointsConfig.AuthorizedNetworksConfig"),
+			r.Spec.LoggingService, "spec.ControlPlaneEndpointsConfig.IpEndpointsConfig.AuthorizedNetworksConfig and spec.MasterAuthorizedNetworksConfig cannot be set at the same time: please use spec.ControlPlaneEndpointsConfig.IpEndpointsConfig.AuthorizedNetworksConfig"))
 	}
 
 	if r.Spec.LoggingService != nil {

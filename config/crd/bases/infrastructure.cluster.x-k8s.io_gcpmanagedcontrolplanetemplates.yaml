@@ -115,6 +115,58 @@ spec:
                               pod IPs in the cluster.
                             type: boolean
                         type: object
+                      controlPlaneEndpointsConfig:
+                        description: ControlPlaneEndpointsConfig represents configuration
+                          options for all of the cluster's control plane endpoints.
+                        properties:
+                          ipEndpointsConfig:
+                            description: |-
+                              IpEndpointsConfig is the configuration for the cluster's endpoints IP.
+                              This feature is disabled if this field is not specified.
+                            properties:
+                              authorizedNetworksConfig:
+                                description: |-
+                                  AuthorizedNetworksConfig represented the configuration of authorized networks. If enabled, restricts access to the
+                                  control plane based on source IP.
+                                  It is invalid to specify both
+                                  [Cluster.masterAuthorizedNetworksConfig][] and this field at the same
+                                  time.
+                                properties:
+                                  cidr_blocks:
+                                    description: |-
+                                      cidr_blocks define up to 50 external networks that could access
+                                      Kubernetes master through HTTPS.
+                                    items:
+                                      description: MasterAuthorizedNetworksConfigCidrBlock
+                                        contains an optional name and one CIDR block.
+                                      properties:
+                                        cidr_block:
+                                          description: cidr_block must be specified
+                                            in CIDR notation.
+                                          pattern: ^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?:\/([0-9]|[1-2][0-9]|3[0-2]))?$|^([a-fA-F0-9:]+:+)+[a-fA-F0-9]+\/[0-9]{1,3}$
+                                          type: string
+                                        display_name:
+                                          description: display_name is an field for
+                                            users to identify CIDR blocks.
+                                          type: string
+                                      type: object
+                                    type: array
+                                  gcp_public_cidrs_access_enabled:
+                                    description: Whether master is accessible via
+                                      Google Compute Engine Public IP addresses.
+                                    type: boolean
+                                type: object
+                              enablePublicEndpoint:
+                                description: Controls whether the control plane allows
+                                  access through a public IP.
+                                type: boolean
+                              privateEndpointSubnetwork:
+                                description: |-
+                                  Subnet to provision the master's private endpoint during cluster
+                                  creation. Specified in projects/*/regions/*/subnetworks/* format.
+                                type: string
+                            type: object
+                        type: object
                       enableAutopilot:
                         description: EnableAutopilot indicates whether to enable autopilot
                           for this GKE cluster.
@@ -145,6 +197,9 @@ spec:
                         description: |-
                           MasterAuthorizedNetworksConfig represents configuration options for master authorized networks feature of the GKE cluster.
                           This feature is disabled if this field is not specified.
+
+                          Deprecated: This field will soon be removed as it will be deprecated in the GCP SDK.
+                          Use controlPlaneEndpointsConfig.ipEndpointsConfig.authorizedNetworksConfig instead.
                         properties:
                           cidr_blocks:
                             description: |-
