@@ -50,8 +50,8 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 						Project:        "test-project",
 						Location:       "us-central1",
 						ReleaseChannel: ptr.To(infrav1exp.Stable),
+						ClusterName:    "test-cluster",
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{
@@ -78,8 +78,8 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 						Project:        "test-project",
 						Location:       "us-central1",
 						ReleaseChannel: ptr.To(infrav1exp.Rapid),
+						ClusterName:    "test-cluster",
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{
@@ -100,11 +100,11 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 			controlPlane: &infrav1exp.GCPManagedControlPlane{
 				Spec: infrav1exp.GCPManagedControlPlaneSpec{
 					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
-						Project:  "test-project",
-						Location: "us-central1",
+						Project:     "test-project",
+						Location:    "us-central1",
+						ClusterName: "test-cluster",
 					},
-					ClusterName: "test-cluster",
-					Version:     ptr.To("1.28.0"),
+					Version: ptr.To("1.28.0"),
 				},
 			},
 			existingCluster: &containerpb.Cluster{
@@ -123,11 +123,11 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 			controlPlane: &infrav1exp.GCPManagedControlPlane{
 				Spec: infrav1exp.GCPManagedControlPlaneSpec{
 					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
+						ClusterName:       "test-cluster",
 						Project:           "test-project",
 						Location:          "us-central1",
 						MonitoringService: ptr.To(infrav1exp.MonitoringService("none")),
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{
@@ -149,10 +149,10 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 			controlPlane: &infrav1exp.GCPManagedControlPlane{
 				Spec: infrav1exp.GCPManagedControlPlaneSpec{
 					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
-						Project:  "test-project",
-						Location: "us-central1",
+						Project:     "test-project",
+						Location:    "us-central1",
+						ClusterName: "test-cluster",
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{},
@@ -174,10 +174,10 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 			controlPlane: &infrav1exp.GCPManagedControlPlane{
 				Spec: infrav1exp.GCPManagedControlPlaneSpec{
 					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
-						Project:  "test-project",
-						Location: "us-central1",
+						Project:     "test-project",
+						Location:    "us-central1",
+						ClusterName: "test-cluster",
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{
@@ -206,8 +206,8 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 								{CidrBlock: "10.0.0.0/8", DisplayName: "internal"},
 							},
 						},
+						ClusterName: "test-cluster",
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{},
@@ -237,13 +237,13 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 			controlPlane: &infrav1exp.GCPManagedControlPlane{
 				Spec: infrav1exp.GCPManagedControlPlaneSpec{
 					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
-						Project:  "test-project",
-						Location: "us-central1",
+						ClusterName: "test-cluster",
+						Project:     "test-project",
+						Location:    "us-central1",
 						ClusterNetwork: &infrav1exp.ClusterNetwork{
 							GatewayAPIChannel: ptr.To(infrav1exp.GatewayAPIChannelStandard),
 						},
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{
@@ -269,13 +269,13 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 			controlPlane: &infrav1exp.GCPManagedControlPlane{
 				Spec: infrav1exp.GCPManagedControlPlaneSpec{
 					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
-						Project:  "test-project",
-						Location: "us-central1",
+						ClusterName: "test-cluster",
+						Project:     "test-project",
+						Location:    "us-central1",
 						ClusterNetwork: &infrav1exp.ClusterNetwork{
 							GatewayAPIChannel: ptr.To(infrav1exp.GatewayAPIChannelStandard),
 						},
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{
@@ -298,13 +298,13 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 			controlPlane: &infrav1exp.GCPManagedControlPlane{
 				Spec: infrav1exp.GCPManagedControlPlaneSpec{
 					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
-						Project:  "test-project",
-						Location: "us-central1",
+						ClusterName: "test-cluster",
+						Project:     "test-project",
+						Location:    "us-central1",
 						ClusterNetwork: &infrav1exp.ClusterNetwork{
 							GatewayAPIChannel: ptr.To(infrav1exp.GatewayAPIChannelDisabled),
 						},
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{},
@@ -328,8 +328,8 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 								{CidrBlock: "192.168.0.0/16"},
 							},
 						},
+						ClusterName: "test-cluster",
 					},
-					ClusterName: "test-cluster",
 				},
 			},
 			existingCluster: &containerpb.Cluster{
