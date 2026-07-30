@@ -26,8 +26,9 @@ import (
 )
 
 var (
-	vV1_32_5       = "v1.32.5"
-	releaseChannel = expinfrav1.Rapid
+	vV1_32_5                  = "v1.32.5"
+	releaseChannel            = expinfrav1.Rapid
+	gatewayAPIChannelStandard = expinfrav1.GatewayAPIChannelStandard
 )
 
 func TestGCPManagedControlPlaneDefaultingWebhook(t *testing.T) {
@@ -166,6 +167,34 @@ func TestGCPManagedControlPlaneValidatingWebhookCreate(t *testing.T) {
 			},
 		},
 		{
+			name:        "autopilot enabled with gateway api channel should cause an error",
+			expectError: true,
+			expectWarn:  false,
+			spec: expinfrav1.GCPManagedControlPlaneSpec{
+				ClusterName: "",
+				GCPManagedControlPlaneClassSpec: expinfrav1.GCPManagedControlPlaneClassSpec{
+					EnableAutopilot: true,
+					ReleaseChannel:  &releaseChannel,
+					ClusterNetwork: &expinfrav1.ClusterNetwork{
+						GatewayAPIChannel: &gatewayAPIChannelStandard,
+					},
+				},
+			},
+		},
+		{
+			name:        "gateway api channel set without autopilot",
+			expectError: false,
+			expectWarn:  false,
+			spec: expinfrav1.GCPManagedControlPlaneSpec{
+				ClusterName: "",
+				GCPManagedControlPlaneClassSpec: expinfrav1.GCPManagedControlPlaneClassSpec{
+					ClusterNetwork: &expinfrav1.ClusterNetwork{
+						GatewayAPIChannel: &gatewayAPIChannelStandard,
+					},
+				},
+			},
+		},
+		{
 			name:        "using deprecated ControlPlaneVersion should cause a warning",
 			expectError: false,
 			expectWarn:  true,
@@ -214,6 +243,7 @@ func TestGCPManagedControlPlaneValidatingWebhookUpdate(t *testing.T) {
 		name        string
 		expectError bool
 		spec        expinfrav1.GCPManagedControlPlaneSpec
+		oldSpec     *expinfrav1.GCPManagedControlPlaneSpec
 	}{
 		{
 			name:        "request to change cluster name should cause an error",
@@ -266,6 +296,40 @@ func TestGCPManagedControlPlaneValidatingWebhookUpdate(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:        "request to change gateway api channel should not cause an error",
+			expectError: false,
+			spec: expinfrav1.GCPManagedControlPlaneSpec{
+				ClusterName: "default_cluster1",
+				GCPManagedControlPlaneClassSpec: expinfrav1.GCPManagedControlPlaneClassSpec{
+					ClusterNetwork: &expinfrav1.ClusterNetwork{
+						PrivateCluster: &expinfrav1.PrivateCluster{
+							EnablePrivateEndpoint: true,
+						},
+						GatewayAPIChannel: &gatewayAPIChannelStandard,
+					},
+				},
+			},
+		},
+		{
+			name:        "request to set gateway api channel on an autopilot cluster should cause an error",
+			expectError: true,
+			spec: expinfrav1.GCPManagedControlPlaneSpec{
+				ClusterName: "default_cluster1",
+				GCPManagedControlPlaneClassSpec: expinfrav1.GCPManagedControlPlaneClassSpec{
+					EnableAutopilot: true,
+					ClusterNetwork: &expinfrav1.ClusterNetwork{
+						GatewayAPIChannel: &gatewayAPIChannelStandard,
+					},
+				},
+			},
+			oldSpec: &expinfrav1.GCPManagedControlPlaneSpec{
+				ClusterName: "default_cluster1",
+				GCPManagedControlPlaneClassSpec: expinfrav1.GCPManagedControlPlaneClassSpec{
+					EnableAutopilot: true,
+				},
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -275,17 +339,21 @@ func TestGCPManagedControlPlaneValidatingWebhookUpdate(t *testing.T) {
 			newMCP := &expinfrav1.GCPManagedControlPlane{
 				Spec: tc.spec,
 			}
-			oldMCP := &expinfrav1.GCPManagedControlPlane{
-				Spec: expinfrav1.GCPManagedControlPlaneSpec{
-					ClusterName: "default_cluster1",
-					GCPManagedControlPlaneClassSpec: expinfrav1.GCPManagedControlPlaneClassSpec{
-						ClusterNetwork: &expinfrav1.ClusterNetwork{
-							PrivateCluster: &expinfrav1.PrivateCluster{
-								EnablePrivateEndpoint: true,
-							},
+			oldSpec := expinfrav1.GCPManagedControlPlaneSpec{
+				ClusterName: "default_cluster1",
+				GCPManagedControlPlaneClassSpec: expinfrav1.GCPManagedControlPlaneClassSpec{
+					ClusterNetwork: &expinfrav1.ClusterNetwork{
+						PrivateCluster: &expinfrav1.PrivateCluster{
+							EnablePrivateEndpoint: true,
 						},
 					},
 				},
+			}
+			if tc.oldSpec != nil {
+				oldSpec = *tc.oldSpec
+			}
+			oldMCP := &expinfrav1.GCPManagedControlPlane{
+				Spec: oldSpec,
 			}
 
 			warn, err := (&GCPManagedControlPlane{}).ValidateUpdate(t.Context(), oldMCP, newMCP)

@@ -102,6 +102,11 @@ func (*GCPManagedControlPlane) ValidateCreate(_ context.Context, r *expinfrav1.G
 			r.Spec.LoggingService, "can't be set when autopilot is enabled"))
 	}
 
+	if r.Spec.EnableAutopilot && r.Spec.ClusterNetwork != nil && r.Spec.ClusterNetwork.GatewayAPIChannel != nil {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec", "ClusterNetwork", "GatewayAPIChannel"),
+			r.Spec.ClusterNetwork.GatewayAPIChannel, "can't be set when autopilot is enabled"))
+	}
+
 	if r.Spec.ControlPlaneVersion != nil { //nolint:staticcheck
 		if r.Spec.Version != nil {
 			allErrs = append(allErrs, field.Invalid(field.NewPath("spec", "ControlPlaneVersion"),
@@ -158,6 +163,11 @@ func (*GCPManagedControlPlane) ValidateUpdate(_ context.Context, old, r *expinfr
 	if old.Spec.EnableAutopilot && r.Spec.MonitoringService != nil {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec", "MonitoringService"),
 			r.Spec.LoggingService, "can't be set when autopilot is enabled"))
+	}
+
+	if old.Spec.EnableAutopilot && r.Spec.ClusterNetwork != nil && r.Spec.ClusterNetwork.GatewayAPIChannel != nil {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec", "ClusterNetwork", "GatewayAPIChannel"),
+			r.Spec.ClusterNetwork.GatewayAPIChannel, "can't be set when autopilot is enabled"))
 	}
 
 	if old.Spec.Version != nil && r.Spec.ControlPlaneVersion != nil { //nolint:staticcheck
