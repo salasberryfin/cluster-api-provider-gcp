@@ -95,7 +95,23 @@ type ClusterNetwork struct {
 	// Service defines the range of CIDRBlock list from where it gets the IP address.
 	// +optional
 	Service *ClusterNetworkService `json:"service,omitempty"`
+
+	// GatewayAPIChannel controls whether the GKE-managed Gateway API controller
+	// is enabled on the cluster, and which release channel it runs on.
+	// +optional
+	GatewayAPIChannel *GatewayAPIChannel `json:"gatewayAPIChannel,omitempty"`
 }
+
+// GatewayAPIChannel is the release channel of the GKE Gateway API controller.
+// +kubebuilder:validation:Enum=disabled;standard
+type GatewayAPIChannel string
+
+const (
+	// GatewayAPIChannelDisabled disables the GKE-managed Gateway API controller.
+	GatewayAPIChannelDisabled GatewayAPIChannel = "disabled"
+	// GatewayAPIChannelStandard enables the GKE-managed Gateway API controller on the standard channel.
+	GatewayAPIChannelStandard GatewayAPIChannel = "standard"
+)
 
 // WorkloadIdentityConfig allows workloads in your GKE clusters to impersonate Identity and Access Management (IAM)
 // service accounts to access Google Cloud services.
