@@ -233,6 +233,90 @@ func TestCheckDiffAndPrepareUpdate(t *testing.T) {
 			},
 		},
 		{
+			name: "no diff when gateway api channel matches",
+			controlPlane: &infrav1exp.GCPManagedControlPlane{
+				Spec: infrav1exp.GCPManagedControlPlaneSpec{
+					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
+						Project:  "test-project",
+						Location: "us-central1",
+						ClusterNetwork: &infrav1exp.ClusterNetwork{
+							GatewayAPIChannel: ptr.To(infrav1exp.GatewayAPIChannelStandard),
+						},
+					},
+					ClusterName: "test-cluster",
+				},
+			},
+			existingCluster: &containerpb.Cluster{
+				NetworkConfig: &containerpb.NetworkConfig{
+					GatewayApiConfig: &containerpb.GatewayAPIConfig{
+						Channel: containerpb.GatewayAPIConfig_CHANNEL_STANDARD,
+					},
+				},
+				ControlPlaneEndpointsConfig: &containerpb.ControlPlaneEndpointsConfig{
+					IpEndpointsConfig: &containerpb.ControlPlaneEndpointsConfig_IPEndpointsConfig{
+						AuthorizedNetworksConfig: &containerpb.MasterAuthorizedNetworksConfig{
+							Enabled:                     false,
+							CidrBlocks:                  []*containerpb.MasterAuthorizedNetworksConfig_CidrBlock{},
+							GcpPublicCidrsAccessEnabled: ptr.To(false),
+						},
+					},
+				},
+			},
+			wantNeedUpdate: false,
+		},
+		{
+			name: "update needed when gateway api channel differs",
+			controlPlane: &infrav1exp.GCPManagedControlPlane{
+				Spec: infrav1exp.GCPManagedControlPlaneSpec{
+					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
+						Project:  "test-project",
+						Location: "us-central1",
+						ClusterNetwork: &infrav1exp.ClusterNetwork{
+							GatewayAPIChannel: ptr.To(infrav1exp.GatewayAPIChannelStandard),
+						},
+					},
+					ClusterName: "test-cluster",
+				},
+			},
+			existingCluster: &containerpb.Cluster{
+				NetworkConfig: &containerpb.NetworkConfig{
+					GatewayApiConfig: &containerpb.GatewayAPIConfig{
+						Channel: containerpb.GatewayAPIConfig_CHANNEL_DISABLED,
+					},
+				},
+			},
+			wantNeedUpdate: true,
+			validateUpdateFunc: func(t *testing.T, req *containerpb.UpdateClusterRequest) {
+				t.Helper()
+				if req.GetUpdate().GetDesiredGatewayApiConfig().GetChannel() != containerpb.GatewayAPIConfig_CHANNEL_STANDARD {
+					t.Errorf("expected STANDARD gateway API channel, got %v", req.GetUpdate().GetDesiredGatewayApiConfig().GetChannel())
+				}
+			},
+		},
+		{
+			name: "update needed when gateway api channel desired but existing cluster has no NetworkConfig",
+			controlPlane: &infrav1exp.GCPManagedControlPlane{
+				Spec: infrav1exp.GCPManagedControlPlaneSpec{
+					GCPManagedControlPlaneClassSpec: infrav1exp.GCPManagedControlPlaneClassSpec{
+						Project:  "test-project",
+						Location: "us-central1",
+						ClusterNetwork: &infrav1exp.ClusterNetwork{
+							GatewayAPIChannel: ptr.To(infrav1exp.GatewayAPIChannelDisabled),
+						},
+					},
+					ClusterName: "test-cluster",
+				},
+			},
+			existingCluster: &containerpb.Cluster{},
+			wantNeedUpdate:  true,
+			validateUpdateFunc: func(t *testing.T, req *containerpb.UpdateClusterRequest) {
+				t.Helper()
+				if req.GetUpdate().GetDesiredGatewayApiConfig().GetChannel() != containerpb.GatewayAPIConfig_CHANNEL_DISABLED {
+					t.Errorf("expected DISABLED gateway API channel, got %v", req.GetUpdate().GetDesiredGatewayApiConfig().GetChannel())
+				}
+			},
+		},
+		{
 			name: "authorized networks update with existing cluster having nil nested config",
 			controlPlane: &infrav1exp.GCPManagedControlPlane{
 				Spec: infrav1exp.GCPManagedControlPlaneSpec{
@@ -572,6 +656,23 @@ func TestClusterNetworkNilPointerGuards(t *testing.T) {
 		clusterNetwork *infrav1exp.ClusterNetwork
 	}{
 		{
+			name: "no panic with gateway api channel only and no private cluster",
+			clusterNetwork: &infrav1exp.ClusterNetwork{
+				GatewayAPIChannel: ptr.To(infrav1exp.GatewayAPIChannelStandard),
+			},
+		},
+		{
+			name: "no panic with gateway api channel and private cluster combined",
+			clusterNetwork: &infrav1exp.ClusterNetwork{
+				GatewayAPIChannel: ptr.To(infrav1exp.GatewayAPIChannelStandard),
+				PrivateCluster: &infrav1exp.PrivateCluster{
+					EnablePrivateNodes:    true,
+					EnablePrivateEndpoint: true,
+					ControlPlaneCidrBlock: "172.16.0.0/28",
+				},
+			},
+		},
+		{
 			name: "no panic when useIPAliases is true with nil Pod and nil Service",
 			clusterNetwork: &infrav1exp.ClusterNetwork{
 				UseIPAliases: true,
@@ -650,10 +751,11 @@ func TestClusterNetworkNilPointerGuards(t *testing.T) {
 					}
 				}
 
-				cluster.NetworkConfig = &containerpb.NetworkConfig{
-					DefaultSnatStatus: &containerpb.DefaultSnatStatus{
-						Disabled: cn.PrivateCluster.DisableDefaultSNAT,
-					},
+				if cluster.GetNetworkConfig() == nil {
+					cluster.NetworkConfig = &containerpb.NetworkConfig{}
+				}
+				cluster.NetworkConfig.DefaultSnatStatus = &containerpb.DefaultSnatStatus{
+					Disabled: cn.PrivateCluster.DisableDefaultSNAT,
 				}
 				cluster.NetworkConfig.DefaultEnablePrivateNodes = &cn.PrivateCluster.EnablePrivateNodes
 
@@ -662,6 +764,15 @@ func TestClusterNetworkNilPointerGuards(t *testing.T) {
 					EnablePrivateNodes:  cn.PrivateCluster.EnablePrivateNodes,
 				}
 				cluster.ControlPlaneEndpointsConfig.IpEndpointsConfig.GlobalAccess = &cn.PrivateCluster.ControlPlaneGlobalAccess
+			}
+
+			if cn.GatewayAPIChannel != nil {
+				if cluster.GetNetworkConfig() == nil {
+					cluster.NetworkConfig = &containerpb.NetworkConfig{}
+				}
+				cluster.NetworkConfig.GatewayApiConfig = &containerpb.GatewayAPIConfig{
+					Channel: convertToSdkGatewayAPIChannel(cn.GatewayAPIChannel),
+				}
 			}
 
 			// Verify IP allocation policy when UseIPAliases is set
@@ -696,6 +807,16 @@ func TestClusterNetworkNilPointerGuards(t *testing.T) {
 				}
 				if cluster.GetPrivateClusterConfig() == nil {
 					t.Fatal("expected PrivateClusterConfig to be set")
+				}
+			}
+
+			// Verify gateway API config
+			if cn.GatewayAPIChannel != nil {
+				if cluster.GetNetworkConfig() == nil {
+					t.Fatal("expected NetworkConfig to be initialized")
+				}
+				if cluster.GetNetworkConfig().GetGatewayApiConfig().GetChannel() != containerpb.GatewayAPIConfig_CHANNEL_STANDARD {
+					t.Errorf("expected STANDARD gateway API channel, got %v", cluster.GetNetworkConfig().GetGatewayApiConfig().GetChannel())
 				}
 			}
 		})

@@ -299,10 +299,11 @@ func (s *Service) createCluster(ctx context.Context, log *logr.Logger) error {
 			}
 
 			// Initialize NetworkConfig before accessing DefaultEnablePrivateNodes
-			cluster.NetworkConfig = &containerpb.NetworkConfig{
-				DefaultSnatStatus: &containerpb.DefaultSnatStatus{
-					Disabled: cn.PrivateCluster.DisableDefaultSNAT,
-				},
+			if cluster.GetNetworkConfig() == nil {
+				cluster.NetworkConfig = &containerpb.NetworkConfig{}
+			}
+			cluster.NetworkConfig.DefaultSnatStatus = &containerpb.DefaultSnatStatus{
+				Disabled: cn.PrivateCluster.DisableDefaultSNAT,
 			}
 			cluster.NetworkConfig.DefaultEnablePrivateNodes = &cn.PrivateCluster.EnablePrivateNodes
 
@@ -313,6 +314,15 @@ func (s *Service) createCluster(ctx context.Context, log *logr.Logger) error {
 				EnablePrivateNodes: cn.PrivateCluster.EnablePrivateNodes,
 			}
 			cluster.ControlPlaneEndpointsConfig.IpEndpointsConfig.GlobalAccess = &cn.PrivateCluster.ControlPlaneGlobalAccess
+		}
+
+		if cn.GatewayAPIChannel != nil {
+			if cluster.GetNetworkConfig() == nil {
+				cluster.NetworkConfig = &containerpb.NetworkConfig{}
+			}
+			cluster.NetworkConfig.GatewayApiConfig = &containerpb.GatewayAPIConfig{
+				Channel: convertToSdkGatewayAPIChannel(cn.GatewayAPIChannel),
+			}
 		}
 	}
 
@@ -418,6 +428,21 @@ func convertToSdkReleaseChannel(channel *infrav1exp.ReleaseChannel) containerpb.
 		return containerpb.ReleaseChannel_EXTENDED
 	default:
 		return containerpb.ReleaseChannel_UNSPECIFIED
+	}
+}
+
+// convertToSdkGatewayAPIChannel converts the GatewayAPIChannel to the SDK enum value.
+func convertToSdkGatewayAPIChannel(channel *infrav1exp.GatewayAPIChannel) containerpb.GatewayAPIConfig_Channel {
+	if channel == nil {
+		return containerpb.GatewayAPIConfig_CHANNEL_UNSPECIFIED
+	}
+	switch *channel {
+	case infrav1exp.GatewayAPIChannelDisabled:
+		return containerpb.GatewayAPIConfig_CHANNEL_DISABLED
+	case infrav1exp.GatewayAPIChannelStandard:
+		return containerpb.GatewayAPIConfig_CHANNEL_STANDARD
+	default:
+		return containerpb.GatewayAPIConfig_CHANNEL_UNSPECIFIED
 	}
 }
 
@@ -535,6 +560,22 @@ func (s *Service) checkDiffAndPrepareUpdate(existingCluster *containerpb.Cluster
 	log.V(4).Info("Master authorized networks config update check", "current", existingAuthorizedNetworksConfig)
 	if desiredMasterAuthorizedNetworksConfig != nil {
 		log.V(4).Info("Master authorized networks config update check", "desired", desiredMasterAuthorizedNetworksConfig)
+	}
+
+	// Gateway API channel
+	var desiredGatewayAPIChannel *infrav1exp.GatewayAPIChannel
+	if cn := s.scope.GCPManagedControlPlane.Spec.ClusterNetwork; cn != nil {
+		desiredGatewayAPIChannel = cn.GatewayAPIChannel
+	}
+	desiredGatewayChannel := convertToSdkGatewayAPIChannel(desiredGatewayAPIChannel)
+	if desiredGatewayChannel != existingCluster.GetNetworkConfig().GetGatewayApiConfig().GetChannel() {
+		needUpdate = true
+		clusterUpdate.DesiredGatewayApiConfig = &containerpb.GatewayAPIConfig{
+			Channel: desiredGatewayChannel,
+		}
+		log.V(2).Info("Gateway API channel update required",
+			"current", existingCluster.GetNetworkConfig().GetGatewayApiConfig().GetChannel(),
+			"desired", desiredGatewayChannel)
 	}
 
 	updateClusterRequest := containerpb.UpdateClusterRequest{
