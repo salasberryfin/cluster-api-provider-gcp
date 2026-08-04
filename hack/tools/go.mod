@@ -1,8 +1,8 @@
 module sigs.k8s.io/cluster-api-provider-gcp/hack/tools
 
-go 1.25.0
+go 1.26.0
 
-toolchain go1.25.11
+toolchain go1.26.5
 
 require sigs.k8s.io/cluster-api/hack/tools v0.0.0-20260513122147-ebd807c66351
 
