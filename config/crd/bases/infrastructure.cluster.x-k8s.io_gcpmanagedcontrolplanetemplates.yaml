@@ -64,6 +64,14 @@ spec:
                       clusterNetwork:
                         description: ClusterNetwork define the cluster network.
                         properties:
+                          gatewayAPIChannel:
+                            description: |-
+                              GatewayAPIChannel controls whether the GKE-managed Gateway API controller
+                              is enabled on the cluster, and which release channel it runs on.
+                            enum:
+                            - disabled
+                            - standard
+                            type: string
                           pod:
                             description: Pod defines the range of CIDRBlock list from
                               where it gets the IP address.
