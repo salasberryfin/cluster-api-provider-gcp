@@ -199,10 +199,6 @@ type GCPMachinePoolList struct {
 	Items           []GCPMachinePool `json:"items"`
 }
 
-func init() {
-	SchemeBuilder.Register(&GCPMachinePool{}, &GCPMachinePoolList{})
-}
-
 // GetObjectKind will return the ObjectKind of an GCPMachinePool.
 func (r *GCPMachinePool) GetObjectKind() schema.ObjectKind {
 	return &r.TypeMeta
@@ -224,4 +220,8 @@ func (r *GCPMachinePool) SetConditions(conditions []metav1.Condition) {
 // GetConditions gets conditions for a MachinePool.
 func (r *GCPMachinePool) GetConditions() []metav1.Condition {
 	return r.Status.Conditions
+}
+
+func init() {
+	objectTypes = append(objectTypes, &GCPMachinePool{}, &GCPMachinePoolList{})
 }

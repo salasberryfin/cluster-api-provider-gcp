@@ -107,5 +107,5 @@ type GCPManagedClusterList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&GCPManagedCluster{}, &GCPManagedClusterList{})
+	objectTypes = append(objectTypes, &GCPManagedCluster{}, &GCPManagedClusterList{})
 }

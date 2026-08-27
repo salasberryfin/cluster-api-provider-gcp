@@ -483,5 +483,5 @@ type GCPMachineList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&GCPMachine{}, &GCPMachineList{})
+	objectTypes = append(objectTypes, &GCPMachine{}, &GCPMachineList{})
 }
