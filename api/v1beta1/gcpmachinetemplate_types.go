@@ -47,5 +47,5 @@ type GCPMachineTemplateList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&GCPMachineTemplate{}, &GCPMachineTemplateList{})
+	objectTypes = append(objectTypes, &GCPMachineTemplate{}, &GCPMachineTemplateList{})
 }

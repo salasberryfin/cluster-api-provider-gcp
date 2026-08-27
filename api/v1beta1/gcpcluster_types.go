@@ -114,5 +114,5 @@ type GCPClusterList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&GCPCluster{}, &GCPClusterList{})
+	objectTypes = append(objectTypes, &GCPCluster{}, &GCPClusterList{})
 }

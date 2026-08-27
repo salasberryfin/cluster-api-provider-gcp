@@ -321,5 +321,5 @@ func (r *GCPManagedControlPlane) SetConditions(conditions clusterv1beta1.Conditi
 }
 
 func init() {
-	SchemeBuilder.Register(&GCPManagedControlPlane{}, &GCPManagedControlPlaneList{})
+	objectTypes = append(objectTypes, &GCPManagedControlPlane{}, &GCPManagedControlPlaneList{})
 }

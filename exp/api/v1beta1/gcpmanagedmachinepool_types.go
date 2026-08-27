@@ -224,5 +224,5 @@ func (r *GCPManagedMachinePool) SetConditions(conditions clusterv1beta1.Conditio
 }
 
 func init() {
-	SchemeBuilder.Register(&GCPManagedMachinePool{}, &GCPManagedMachinePoolList{})
+	objectTypes = append(objectTypes, &GCPManagedMachinePool{}, &GCPManagedMachinePoolList{})
 }

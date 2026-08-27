@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/runtime"
 	infrav1 "sigs.k8s.io/cluster-api-provider-gcp/api/v1beta1"
 	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -15,8 +16,9 @@ import (
 func TestMachineLocalSSDDiskType(t *testing.T) {
 	ctx := context.Background()
 
-	// Register the GCPMachine and GCPMachineList in a schema.
-	schema, err := infrav1.SchemeBuilder.Register(&infrav1.GCPMachine{}, &infrav1.GCPMachineList{}).Build()
+	// Register the GCPMachine types in a scheme.
+	schema := runtime.NewScheme()
+	err := infrav1.AddToScheme(schema)
 
 	// Make sure no errors were triggered.
 	assert.Nil(t, err)
